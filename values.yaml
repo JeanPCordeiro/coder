@@ -1,0 +1,64 @@
+coder:
+  # You can specify any environment variables you'd like to pass to Coder
+  # here. Coder consumes environment variables listed in
+  # `coder server --help`, and these environment variables are also passed
+  # to the workspace provisioner (so you can consume them in your Terraform
+  # templates for auth keys etc.).
+  #
+  # Please keep in mind that you should not set `CODER_ADDRESS`,
+  # `CODER_TLS_ENABLE`, `CODER_TLS_CERT_FILE` or `CODER_TLS_KEY_FILE` as
+  # they are already set by the Helm chart and will cause conflicts.
+  serviceAccountName: coder
+  env:
+    - name: CODER_PG_CONNECTION_URL
+      valueFrom:
+        secretKeyRef:
+          # You'll need to create a secret called coder-db-url with your
+          # Postgres connection URL like:
+          # postgres://coder:password@postgres:5432/coder?sslmode=disable
+          name: coder-db-url
+          key: url
+
+    # (Optional) For production deployments the access URL should be set.
+    # If you're just trying Coder, access the dashboard via the service IP.
+    - name: CODER_ACCESS_URL
+      value: "https://coder.lean-sys.com"
+
+  #tls:
+  #  secretNames:
+  #    - my-tls-secret-name
+
+  service:
+    # coder.service.enable -- Whether to create the Service object.
+    enable: true
+    # coder.service.type -- The type of service to expose. See:
+    # https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+    type: ClusterIP
+
+  # coder.ingress -- The Ingress object to expose for Coder.
+  ingress:
+    # coder.ingress.enable -- Whether to create the Ingress object. If using an
+    # Ingress, we recommend not specifying coder.tls.secretNames as the Ingress
+    # will handle TLS termination.
+    enable: false
+    # coder.ingress.className -- The name of the Ingress class to use.
+    #className: "traefik"
+    # coder.ingress.host -- The hostname to match on.
+    host: "coder.lean-sys.com"
+    # coder.ingress.wildcardHost -- The wildcard hostname to match on. Should be
+    # in the form "*.example.com" or "*-suffix.example.com". If you are using a
+    # suffix after the wildcard, the suffix will be stripped from the created
+    # ingress to ensure that it is a legal ingress host. Optional if not using
+    # applications over subdomains.
+    wildcardHost: "*.coder.lean-sys.com"
+    # coder.ingress.annotations -- The ingress annotations.
+    annotations: {kubernetes.io/ingress.class: traefik , cert-manager.io/cluster-issuer: letsencrypt-prod , traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd}
+    # coder.ingress.tls -- The TLS configuration to use for the Ingress.
+    tls:
+      # coder.ingress.tls.enable -- Whether to enable TLS on the Ingress.
+      enable: enable
+      # coder.ingress.tls.secretName -- The name of the TLS secret to use.
+      secretName: "coder-tls"
+      # coder.ingress.tls.wildcardSecretName -- The name of the TLS secret to
+      # use for the wildcard host.
+      wildcardSecretName: "wild-coder-tls"

@@ -1,0 +1,58 @@
+---
+#
+# Coder Ingress
+#
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: coder-ingress
+  namespace: coder
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
+spec:
+  rules:
+  - host: coder.lean-sys.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: coder
+            port:
+              number: 80
+  tls:
+    - secretName: coder-tls
+      hosts:
+        - coder.lean-sys.com
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: coder
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["*"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: coder
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: coder
+subjects:
+  - kind: ServiceAccount
+    name: coder
+roleRef:
+  kind: Role
+  name: coder
+  apiGroup: rbac.authorization.k8s.io
+  
