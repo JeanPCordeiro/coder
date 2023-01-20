@@ -34,3 +34,25 @@ k3s_config:
 	sudo sed -i 's/127.0.0.1/${MASTER1}/g'  ~/.kube/config
 	kubectl get nodes -o=wide
 
+coder_installcli:
+	curl -L https://coder.com/install.sh | sh -s -- --version 0.14.3
+
+coder_install:
+	kubectl create namespace coder
+	kubectl create namespace coder-workspaces
+	helm repo add bitnami https://charts.bitnami.com/bitnami
+	helm install coder-db bitnami/postgresql \
+    	--namespace coder \
+    	--set auth.username=coder \
+    	--set auth.password=coder \
+    	--set auth.database=coder \
+    	--set persistence.size=10Gi
+	helm repo add coder-v2 https://helm.coder.com/v2
+	kubectl create secret generic coder-db-url -n coder \
+   		--from-literal=url="postgres://coder:coder@coder-db-postgresql.coder.svc.cluster.local:5432/coder?sslmode=disable"
+	helm install coder coder-v2/coder \
+    	--namespace coder \
+    	--values values.yaml
+	cat coder.yaml | envsubst '$${DOMAIN}' | kubectl apply -f -
+	kubectl create clusterrolebinding add-on-cluster-admin --clusterrole=cluster-admin --serviceaccount=coder:coder
+
