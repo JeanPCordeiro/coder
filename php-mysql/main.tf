@@ -158,7 +158,7 @@ resource "kubernetes_pod" "main" {
     }
     container {
       name    = "dev"
-      image   = "codercom/enterprise-base:ubuntu"
+      image   = "jpcordeiro/coder-php:latest"
       command = ["sh", "-c", coder_agent.main.init_script]
       security_context {
         run_as_user = "1000"
