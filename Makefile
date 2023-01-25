@@ -35,7 +35,7 @@ k3s_config:
 	kubectl get nodes -o=wide
 
 coder_installcli:
-	curl -L https://coder.com/install.sh | sh -s -- --version 0.14.3
+	curl -L https://coder.com/install.sh | sh -s -- 
 
 coder_install:
 	kubectl create namespace coder
