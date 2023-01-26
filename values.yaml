@@ -24,6 +24,35 @@ coder:
     - name: CODER_ACCESS_URL
       value: "https://coder.sys.lean-sys.com"
 
+    - name: CODER_OAUTH2_GITHUB_ALLOW_SIGNUPS
+      value: "true"
+    - name: CODER_OAUTH2_GITHUB_ALLOW_EVERYONE
+      value: "true"
+    - name: CODER_GITAUTH_0_ID
+      value: "primary-github"
+    - name: CODER_GITAUTH_0_TYPE
+      value: "github"
+    - name: CODER_GITAUTH_0_CLIENT_ID
+      valueFrom:
+        secretKeyRef:
+          name: coder-client-github
+          key: client-id
+    - name: CODER_GITAUTH_0_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: coder-secret-github
+          key: client-secret    
+    - name: CODER_OAUTH2_GITHUB_CLIENT_ID
+      valueFrom:
+        secretKeyRef:
+          name: coder-client-github
+          key: client-id
+    - name: CODER_OAUTH2_GITHUB_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: coder-secret-github
+          key: client-secret 
+
   #tls:
   #  secretNames:
   #    - my-tls-secret-name
