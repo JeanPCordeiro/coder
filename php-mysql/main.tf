@@ -84,6 +84,16 @@ resource "coder_app" "code-server" {
     threshold = 10
   }
 }
+      
+# Php app
+resource "coder_app" "php-app" {
+  agent_id  = coder_agent.main.id
+  slug      = "php-app"
+  icon      = "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg"
+  url       = "http://localhost:8000"
+  subdomain = false
+  share     = "public"
+}
 
 resource "kubernetes_persistent_volume_claim" "home" {
   metadata {
