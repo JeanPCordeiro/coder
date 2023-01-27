@@ -41,6 +41,12 @@ variable "home_disk_size" {
   }
 }
 
+variable "repo" {
+  type        = string
+  description = "Full url of your github repo"
+  default     = ""
+}
+
 provider "kubernetes" {
   # Authenticate via ~/.kube/config or a Coder-specific ServiceAccount, depending on admin preferences
   config_path = var.use_kubeconfig == true ? "~/.kube/config" : null
@@ -65,6 +71,13 @@ resource "coder_agent" "main" {
     # install and start code-server
     curl -fsSL https://code-server.dev/install.sh | sh -s -- --version 4.8.3 | tee code-server-install.log
     code-server --auth none --port 13337 | tee code-server-install.log &
+
+    # clone repo
+    #git clone --progress ${data.coder_workspace.me.owner}@github.com:${var.repo}
+    #git clone --progress https://${data.coder_workspace.me.owner}@github.com/${var.repo}
+    git config --global user.name "${data.coder_workspace.me.owner}"
+    git config --global user.email "${data.coder_workspace.me.owner_email}"
+    git clone --progress ${var.repo}
   EOT
 }
 
@@ -89,7 +102,7 @@ resource "coder_app" "code-server" {
 resource "coder_app" "php-app" {
   agent_id  = coder_agent.main.id
   slug      = "php-app"
-  icon      = "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg"
+  icon      = "https://upload.wikimedia.org/wikipedia/commons/2/27/PHP-logo.svg"
   url       = "http://localhost:8000"
   subdomain = false
   share     = "public"
