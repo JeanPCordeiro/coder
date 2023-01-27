@@ -50,15 +50,10 @@ coder_install:
 	helm repo add coder-v2 https://helm.coder.com/v2
 	kubectl create secret generic coder-db-url -n coder \
    		--from-literal=url="postgres://coder:coder@coder-db-postgresql.coder.svc.cluster.local:5432/coder?sslmode=disable"
-<<<<<<< HEAD
-#	kubectl -n coder create secret generic coder-secret-github --from-literal=client-secret="xxxxxxxxxxxxx"
-#	kubectl -n coder create secret generic coder-client-github --from-literal=client-id="xxxxxxxxxx"
-=======
 #	kubectl -n coder create secret generic coder-client-oauth --from-literal=client-id="xx"
 #	kubectl -n coder create secret generic coder-secret-oauth --from-literal=client-secret="xx"
 #	kubectl -n coder create secret generic coder-client-git --from-literal=client-id="xx"
-#	kubectl -n coder create secret generic coder-secret-git --from-literal=client-id="xx"
->>>>>>> 8fd8e8b (secrets)
+#	kubectl -n coder create secret generic coder-secret-git --from-literal=client-secret="xx"
 	helm install coder coder-v2/coder \
     	--namespace coder \
     	--values values.yaml
