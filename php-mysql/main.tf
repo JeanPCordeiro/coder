@@ -41,6 +41,16 @@ variable "home_disk_size" {
   }
 }
 
+variable "mysql_disk_size" {
+  type        = number
+  description = "How large would you like your MySQL volume to be (in GB)?"
+  default     = 1
+  validation {
+    condition     = var.mysql_disk_size >= 1
+    error_message = "Value must be greater than or equal to 1."
+  }
+}
+
 variable "repo" {
   type        = string
   description = "Full url of your github repo"
@@ -138,6 +148,37 @@ resource "kubernetes_persistent_volume_claim" "home" {
   }
 }
 
+resource "kubernetes_persistent_volume_claim" "mysql" {
+  metadata {
+    name      = "coder-${lower(data.coder_workspace.me.owner)}-${lower(data.coder_workspace.me.name)}-mysql"
+    namespace = var.namespace
+    labels = {
+      "app.kubernetes.io/name"     = "coder-pvc"
+      "app.kubernetes.io/instance" = "coder-pvc-${lower(data.coder_workspace.me.owner)}-${lower(data.coder_workspace.me.name)}"
+      "app.kubernetes.io/part-of"  = "coder"
+      // Coder specific labels.
+      "com.coder.resource"       = "true"
+      "com.coder.workspace.id"   = data.coder_workspace.me.id
+      "com.coder.workspace.name" = data.coder_workspace.me.name
+      "com.coder.user.id"        = data.coder_workspace.me.owner_id
+      "com.coder.user.username"  = data.coder_workspace.me.owner
+    }
+    annotations = {
+      "com.coder.user.email" = data.coder_workspace.me.owner_email
+    }
+  }
+  wait_until_bound = false
+  spec {
+    access_modes = ["ReadWriteOnce"]
+    resources {
+      requests = {
+        storage = "${var.mysql_disk_size}Gi"
+      }
+    }
+  }
+}
+
+
 resource "kubernetes_pod" "main" {
   count = data.coder_workspace.me.start_count
   metadata {
@@ -178,6 +219,11 @@ resource "kubernetes_pod" "main" {
         name  = "MYSQL_ROOT_PASSWORD"
         value = "coder"
       }
+      volume_mount {
+        mount_path = "/var/lib/mysql"
+        name       = "mysql"
+        read_only  = false
+      }
     }
     container {
       name    = "dev"
@@ -210,6 +256,13 @@ resource "kubernetes_pod" "main" {
       }
     }
 
+    volume {
+      name = "mysql"
+      persistent_volume_claim {
+        claim_name = kubernetes_persistent_volume_claim.mysql.metadata.0.name
+        read_only  = false
+      }
+    }
 
     affinity {
       pod_anti_affinity {
