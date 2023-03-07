@@ -139,6 +139,7 @@ resource "kubernetes_persistent_volume_claim" "home" {
   }
   wait_until_bound = false
   spec {
+    storage_class_name = "longhorn"
     access_modes = ["ReadWriteOnce"]
     resources {
       requests = {
@@ -170,6 +171,7 @@ resource "kubernetes_persistent_volume_claim" "mysql" {
   wait_until_bound = false
   spec {
     access_modes = ["ReadWriteOnce"]
+    storage_class_name = "longhorn"
     resources {
       requests = {
         storage = "${var.mysql_disk_size}Gi"
